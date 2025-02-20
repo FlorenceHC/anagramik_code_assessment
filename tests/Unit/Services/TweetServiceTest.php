@@ -72,4 +72,26 @@ class TweetServiceTest extends TestCase
         // Assert
         Http::assertSentCount(1);
     }
+
+    public function test_if_http_request_fails_it_should_throw_an_exception()
+    {
+        // Arrange
+        $userName = 'joe_smith';
+
+        // Act
+        Http::fake([
+            'app.codescreen.com/api/assessments/tweets*' => Http::response(new \Exception('request exception'), 500),
+        ]);
+
+        $tweetService = new TweetService();
+        try {
+            $tweetService->getTweets($userName);
+        } catch (\Throwable $throwable) {
+            // Assert
+            $this->assertEquals('Failed to fetch tweets: 500', $throwable->getMessage());
+            return;
+        }
+
+        $this->fail('Exception has not been thrown');
+    }
 }
