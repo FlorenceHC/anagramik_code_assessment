@@ -15,5 +15,8 @@ class GetAllTweetsRequest extends FormRequest
     {
         return [
             'username' => ['required', 'string', 'min:1', 'max:255'],
+            'page' => ['sometimes', 'integer', 'min:1', 'nullable'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100', 'nullable'],
         ];
-    }}
+    }
+}

@@ -26,7 +26,7 @@ class TweetService
         return $response->json();
     }
 
-    public function getTweets(string $userName, int $page = 1, int $perPage = 10): array
+    public function getTweets(string $userName, ?int $page = 1, ?int $perPage = 10): array
     {
         $cacheKey = "tweets.{$userName}";
 

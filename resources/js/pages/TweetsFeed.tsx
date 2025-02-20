@@ -3,12 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TweetApp = () => {
     const [userName, setUserName] = useState('');
     const [tweets, setTweets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [pagination, setPagination] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+
+    const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !loading && userName) {
+            fetchTweets();
+        }
+    };
 
     const fetchTweets = async (page: number = 1) => {
         if (!userName) {
@@ -19,18 +29,27 @@ const TweetApp = () => {
         setLoading(true);
         setError('');
 
+
         try {
-            const response = await fetch(`/api/tweets?username=${userName}`);
+            const response = await fetch(`/api/tweets?username=${userName}&page=${page}&per_page=${perPage}`);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to fetch tweets');
             }
             const data = await response.json();
-            setTweets(data);
+            setTweets(data.tweets);
+            setPagination(data.pagination);
+            setCurrentPage(page);
         } catch (err) {
             setError('Failed to fetch tweets');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePageChange = (newPage: number) :void => {
+        if (newPage >= 1 && newPage <= pagination?.total_pages) {
+            fetchTweets(newPage);
         }
     };
 
@@ -56,6 +75,7 @@ const TweetApp = () => {
                             type="text"
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
+                            onKeyDown={handleEnter}
                             placeholder="Enter username (e.g. joe_smith)"
                             className="flex-grow"
                         />
@@ -90,6 +110,34 @@ const TweetApp = () => {
                                 </CardContent>
                             </Card>
                         ))}
+
+                        {pagination && pagination.total_pages > 1 && (
+                            <div className="flex items-center justify-between mt-6">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1 || loading}
+                                    className="flex items-center gap-2"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    Previous
+                                </Button>
+
+                                <div className="text-sm text-gray-600">
+                                    Page {currentPage} of {pagination.total_pages}
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === pagination.total_pages || loading}
+                                    className="flex items-center gap-2"
+                                >
+                                    Next
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
 
                     </div>
                 </CardContent>
