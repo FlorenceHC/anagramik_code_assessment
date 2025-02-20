@@ -4,16 +4,45 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+interface User {
+    userName: string;
+}
+
+interface Tweet {
+    id: string;
+    text: string;
+    createdAt: string;
+    user: User;
+}
+
+interface PaginationData {
+    total_pages: number;
+}
+
+interface TweetAnalytics {
+    totalTweets: number;
+    maxDaysBetweenTweets: number;
+    mostNumberOfTweetsPerDay: number;
+    mostPopularHashtag: string;
+}
+
+interface TweetResponse {
+    tweets: Tweet[];
+    pagination: PaginationData;
+    analytics: TweetAnalytics;
+}
 
 const TweetApp = () => {
-    const [userName, setUserName] = useState('');
-    const [tweets, setTweets] = useState([]);
+    const [userName, setUserName] =  useState('');
+    const [tweets, setTweets] = useState<Tweet[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [pagination, setPagination] = useState(null);
+    const [pagination, setPagination] = useState<PaginationData | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
-    const [analytics, setAnalytics] = useState(null);
+    const [analytics, setAnalytics] = useState<TweetAnalytics | null>(null);
 
     const fetchTweets = async (page: number = 1) => {
         if (!userName) {
@@ -30,7 +59,7 @@ const TweetApp = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to fetch tweets');
             }
-            const data = await response.json();
+            const data: TweetResponse = await response.json();
             setTweets(data.tweets);
             setPagination(data.pagination);
             setCurrentPage(page);
@@ -43,6 +72,7 @@ const TweetApp = () => {
     };
 
     const handlePageChange = (newPage: number) :void => {
+        // @ts-ignore
         if (newPage >= 1 && newPage <= pagination?.total_pages) {
             fetchTweets(newPage);
         }
@@ -116,6 +146,21 @@ const TweetApp = () => {
                                             <li>Most Tweets in a Day: {analytics.mostNumberOfTweetsPerDay}</li>
                                             <li>Most Popular Hashtag: {analytics.mostPopularHashtag}</li>
                                         </ul>
+                                    </div>
+                                    <div className="h-48">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={Object.entries(analytics.numberOfTweetsPerDay).map(([date, count]) => ({
+                                                    date,
+                                                    count
+                                                }))}
+                                            >
+                                                <XAxis dataKey="date" />
+                                                <YAxis />
+                                                <Tooltip />
+                                                <Bar dataKey="count" fill="#4f46e5" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
                                 </div>
                             </CardContent>

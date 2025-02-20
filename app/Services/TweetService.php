@@ -59,12 +59,14 @@ class TweetService
         }
 
         // TODO: I am constantly iterating over the same array - find a better solution
+        $numberOfTweetsPerDay = $this->getNumberOfTweetsPerDay($tweets);
         return [
             'totalTweets' => count($tweets),
             'longestTweetId' => $this->getLongestTweetById($tweets)['id'],
             'maxDaysBetweenTweets' => $this->getMostDaysBetweenTweets($tweets),
             'mostPopularHashtag' => $this->getMostPopularHashtag($tweets),
-            'mostNumberOfTweetsPerDay' => $this->getMostNumberOfTweetsPerDay($tweets)
+            'mostNumberOfTweetsPerDay' => max($numberOfTweetsPerDay),
+            'numberOfTweetsPerDay' => $numberOfTweetsPerDay
         ];
     }
 
@@ -120,7 +122,7 @@ class TweetService
         return array_search(max($hashtags), $hashtags);
     }
 
-    public function getMostNumberOfTweetsPerDay(array $tweets): int
+    public function getNumberOfTweetsPerDay(array $tweets): array
     {
         $tweetsPerDay = [];
         foreach ($tweets as $tweet) {
@@ -128,6 +130,6 @@ class TweetService
             $tweetsPerDay[$date] = ($tweetsPerDay[$date] ?? 0) + 1;
         }
 
-        return max($tweetsPerDay);
+        return $tweetsPerDay;
     }
 }

@@ -48,7 +48,8 @@ class TweetServiceTest extends TestCase
                 'total_items' => 1,
                 'total_pages' => 1,
                 'has_more' => false
-            ]
+            ],
+            'all_tweets' => $mockTweets
         ], $result);
     }
 
@@ -163,7 +164,8 @@ class TweetServiceTest extends TestCase
                 'total_items' => 3, // we have 3 tweets
                 'total_pages' => 3, // we have 3 tweets
                 'has_more' => true
-            ]
+            ],
+            'all_tweets' => $mockTweets
         ], $result);
     }
 
@@ -222,9 +224,9 @@ class TweetServiceTest extends TestCase
         $tweetService = new TweetService();
 
         // Act
-        $most_number_of_tweets_per_day = $tweetService->getMostNumberOfTweetsPerDay($tweets);
+        $most_number_of_tweets_per_day = $tweetService->getNumberOfTweetsPerDay($tweets);
 
         // Assert
-        $this->assertEquals(10, $most_number_of_tweets_per_day);
+        $this->assertEquals(10, max($most_number_of_tweets_per_day));
     }
 }
