@@ -26,6 +26,7 @@ interface TweetAnalytics {
     maxDaysBetweenTweets: number;
     mostNumberOfTweetsPerDay: number;
     mostPopularHashtag: string;
+    numberOfTweetsPerDay: Record<string, number>;
 }
 
 interface TweetResponse {

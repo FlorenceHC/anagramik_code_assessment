@@ -49,10 +49,9 @@ class GetAllTweetsTest extends TestCase
                 'pagination' => [
                     'fake-pagination-data',
                 ],
-                'all_tweets' => [
-                    'fake-all_tweets-data',
+                'analytics' => [
+                    'fake-analytics-data',
                 ],
-                'fake-analytics-data',
             ]);
     }
 

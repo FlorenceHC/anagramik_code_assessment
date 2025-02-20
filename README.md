@@ -1,66 +1,145 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# React + Laravel code assessment
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Your Task
 
-## About Laravel
+You need to implement a Laravel backend that would act as a proxy to the [TweetsAPIService](https://app.codescreen.com/api/assessments/tweets). It should expose a single endpoint which lists tweets by username. The endpoint should be consumed by a React app, that will fetch and display the tweets in the browser.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## External API Details
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+The external CodeScreen Tweets API is available at:
+GET https://app.codescreen.com/api/assessments/tweets
 
-## Learning Laravel
+### Query Parameter
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **userName** — The username whose tweets need to be fetched. For the purpose of the test, only the userName **joe_smith** will return tweets.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Authentication
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Pass your API token in the Authorization header using the Bearer scheme:
 
-## Laravel Sponsors
+- **Token**: `8c5996d5-fb89-46c9-8821-7063cfbc18b1`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### Example cURL Request
 
-### Premium Partners
+```
+curl -H "Authorization: Bearer 8c5996d5-fb89-46c9-8821-7063cfbc18b1" \
+     "https://app.codescreen.com/api/assessments/tweets?userName=joe_smith"
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+When you send an HTTP GET request to the endpoint, the response will be a 200 OK, which includes a body containing a list of tweet data in JSON format.
 
-## Contributing
+#### Example Response
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+``` 
+[
+  {
+    "id": "52f83d7c-ad2c-4ca0-b742-b03bc27f0c96",
+    "createdAt": "2017-12-01T11:12:42",
+    "text": "Chrome or Firefox? #Browsers",
+    "user": {
+      "id": "75343078-b5dd-306f-a3f9-8203a3915144",
+      "userName": "joe_smith"
+    }
+  },
+  {
+    "id": "5f52e882-36a5-4460-a33b-e834b406650e",
+    "createdAt": "2017-12-02T12:17:52",
+    "text": "Bought a real Christmas tree, smells a lot more christmassy! #Xmas",
+    "user": {
+      "id": "75343078-b5dd-306f-a3f9-8203a3915144",
+      "userName": "joe_smith"
+    }
+  }
+]
+```
 
-## Code of Conduct
+The id field represents the unique id for the tweet. The createdAt field contains the time at which the tweet was published, in ISO-8601 extended offset date-time format. You can assume all date-times are in the same timezone.
+The user field contains a JSON object which is made up of the unique id and name of the user who published the tweet.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## Security Vulnerabilities
+## Backend (Laravel) Requirements
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+### Functionality
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Validation
+    - Ensure the username parameter is provided; return an appropriate error if it’s missing.
+- External API Call
+    - Use Laravel’s HTTP client (or Guzzle) to call the external CodeScreen Tweets API with:
+        - The query parameter userName.
+        - The Authorization header: ```Bearer 8c5996d5-fb89-46c9-8821-7063cfbc18b1.```
+- Response
+    - Return the tweet data to the client in JSON format, preserving the structure as provided by the external API.
+
+### Testing
+
+- Write unit tests using Laravel’s testing framework (Pest or phpUnit) to cover:
+    - Successful retrieval of tweets.
+    - Missing username parameter
+    - Invalid bearer token sent
+    - Structure of tweets should match the one in "Example response"
+
+
+## Frontend (React) Requirements
+
+- User Interface
+    - Create a simple React application able to connect with the Laravel backend.
+    - Include:
+        - An input field where users can enter a username. *(note that only the username **joe_smith** will return tweets. Any other username will return an empty response .)*
+        - A button to trigger the tweet fetch.
+        - A display area to list the tweets returned from the Laravel backend.
+            - For each tweet, display at least:
+                - Tweet text
+                - Creation date
+                - Username
+            - Gracefully handle an empty response scenario (in case of no tweets)
+- Error Handling:
+    - Show meaningful error messages in the UI if the backend returns an error (e.g., missing username or network issues).
+
+## Libraries & Tools:
+- Use any third-party libraries you find helpful (e.g., Axios for React HTTP calls, a UI component library, etc.). However, ensure your choices are justified by clarity and maintainability.
+- Regarding CSS, you may choose you're own approach. You can use plain CSS or a framework like Tailwind, Bootstrap or similar.
+
+
+## Optional (Advanced)
+The following features are *not required* for the completion of the task but they are a great opportunity to showcase even better your skills.
+
+#### Caching:
+Implement caching so that for each unique username, the external API is called at most once during a set period (for example, 30 minutes). Subsequent requests within this time frame should return cached data. Caching could be implemented in the backend, frontend, or both.
+
+#### Pagination:
+If there are many tweets, consider adding pagination to both the API response and the UI.
+
+#### Polling
+- Implement a live tweet feed.
+
+#### Additional features and Tests (for username joe_smith)
+- Most tweets for any day (it should equal to **10**)
+- Longest tweet by id (it should equal to **0c2dc961-a0ae-470e-81a6-8320504dae14**)
+- Most days between tweets (it should equal to **120**)
+- Most popular hash tag (it should equal to **#WorldCup2018**)
+
+#### Additional Analytics
+- Display basic tweet analytics such as:
+- Total number of tweets.
+- Group tweets by day and show counts per day.
+
+#### Deployment
+Include a simple Docker setup or deployment instructions that allow the project to be run locally without hassle.
+
+## Good luck!
+
+---
+# Just run this in your terminal and then access the app on this url http://localhost:8000/
+```
+docker-compose up -d --build
+docker-compose exec app composer install
+docker-compose exec app npm install
+docker-compose exec app npm run build
+```
+---
+
+
+     

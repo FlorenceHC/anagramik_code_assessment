@@ -54,10 +54,10 @@ class TweetService
         ];
     }
 
-    public function getAnalytics(array $tweets): array
+    public function getAnalytics(array $tweets): ?array
     {
         if (empty($tweets)) {
-            return [];
+            return null;
         }
 
         // TODO: I am constantly iterating over the same array - find a better solution

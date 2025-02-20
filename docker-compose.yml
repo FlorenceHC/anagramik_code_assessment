@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
+    ports:
+      - "8000:8000"
+    networks:
+      - florence-test-challenge
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+networks:
+  florence-test-challenge:
+    driver: bridge
+
+volumes:
+  dbdata:
