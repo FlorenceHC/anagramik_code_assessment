@@ -20,32 +20,21 @@ class GetAllTweetsTest extends TestCase
             ->once()
             ->andReturn([
                 'tweets' => [
-                    [
-                        'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
-                        'createdAt' => '2017-12-01T11:12:42',
-                        'text' => 'Test tweet',
-                        'user' => [
-                            'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                            'userName' => 'joe_smith'
-                        ]
-                    ],
-                    [
-                        'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c963',
-                        'createdAt' => '2017-12-01T11:12:42',
-                        'text' => 'Test tweet 2',
-                        'user' => [
-                            'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                            'userName' => 'joe_smith2'
-                        ]
-                    ]
+                    'fake-tweets-data'
                 ],
                 'pagination' => [
-                    'current_page' => 1,
-                    'per_page' => 10,
-                    'total_items' => 2,
-                    'total_pages' => 1,
-                    'has_more' => false
+                    'fake-pagination-data'
                 ],
+                'all_tweets' => [
+                    'fake-all_tweets-data'
+                ]
+            ]);
+
+        $tweetServiceMock->shouldReceive('getAnalytics')
+            ->with(['fake-all_tweets-data'])
+            ->once()
+            ->andReturn([
+                'fake-analytics-data'
             ]);
 
         // Act
@@ -53,34 +42,17 @@ class GetAllTweetsTest extends TestCase
 
         // Assert
         $response->assertOk()
-            ->assertJson([
+            ->assertExactJson([
                 'tweets' => [
-                    [
-                        'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
-                        'createdAt' => '2017-12-01T11:12:42',
-                        'text' => 'Test tweet',
-                        'user' => [
-                            'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                            'userName' => 'joe_smith'
-                        ]
-                    ],
-                    [
-                        'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c963',
-                        'createdAt' => '2017-12-01T11:12:42',
-                        'text' => 'Test tweet 2',
-                        'user' => [
-                            'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                            'userName' => 'joe_smith2'
-                        ]
-                    ]
+                    'fake-tweets-data'
                 ],
                 'pagination' => [
-                    'current_page' => 1,
-                    'per_page' => 10,
-                    'total_items' => 2,
-                    'total_pages' => 1,
-                    'has_more' => false
-                ]
+                    'fake-pagination-data'
+                ],
+                'all_tweets' => [
+                    'fake-all_tweets-data'
+                ],
+                'fake-analytics-data'
             ]);
     }
 

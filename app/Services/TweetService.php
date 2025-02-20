@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -47,6 +48,86 @@ class TweetService
                 'total_pages' => $totalPages,
                 'has_more' => $page < $totalPages
             ],
+            'all_tweets' => $tweets
         ];
+    }
+
+    public function getAnalytics(array $tweets): array
+    {
+        if (empty($tweets)) {
+            return [];
+        }
+
+        // TODO: I am constantly iterating over the same array - find a better solution
+        return [
+            'totalTweets' => count($tweets),
+            'longestTweetId' => $this->getLongestTweetById($tweets)['id'],
+            'maxDaysBetweenTweets' => $this->getMostDaysBetweenTweets($tweets),
+            'mostPopularHashtag' => $this->getMostPopularHashtag($tweets),
+            'mostNumberOfTweetsPerDay' => $this->getMostNumberOfTweetsPerDay($tweets)
+        ];
+    }
+
+    public function getLongestTweetById(array $tweets): array
+    {
+        $longestTweet = null;
+        $longestTweetLength = 0;
+
+        foreach ($tweets as $tweet) {
+            $tweetLength = strlen($tweet['text']);
+            if ($tweetLength > $longestTweetLength) {
+                $longestTweetLength = $tweetLength;
+                $longestTweet = $tweet;
+            }
+        }
+
+        return $longestTweet;
+    }
+
+    public function getMostDaysBetweenTweets(array $tweets): int
+    {
+        $sortedTweets = collect($tweets)->sortBy('createdAt')->values();
+
+        $maxDays = 0;
+
+        for ($i = 0; $i < count($sortedTweets) - 1; $i++) {
+            $current = Carbon::parse($sortedTweets[$i]['createdAt']);
+            $future = Carbon::parse($sortedTweets[$i + 1]['createdAt']);
+            $diffInDays = $current->diffInDays($future);
+            $maxDays = max($maxDays, $diffInDays);
+        }
+
+        return $maxDays;
+    }
+
+    public function getMostPopularHashtag(array $tweets): string
+    {
+        $hashtags = [];
+        foreach ($tweets as $tweet) {
+            // find all hashtags in tweet
+            preg_match_all('/#\w+/', $tweet['text'], $matches);
+
+            // loop over all of them and update global count
+            foreach ($matches[0] as $hashtag) {
+                if (!isset($hashtags[$hashtag])) {
+                    $hashtags[$hashtag] = 0;
+                }
+                $hashtags[$hashtag] += 1;
+            }
+        }
+
+        // this will find the biggest value in the array and return the key
+        return array_search(max($hashtags), $hashtags);
+    }
+
+    public function getMostNumberOfTweetsPerDay(array $tweets): int
+    {
+        $tweetsPerDay = [];
+        foreach ($tweets as $tweet) {
+            $date = Carbon::parse($tweet['createdAt'])->toDateString();
+            $tweetsPerDay[$date] = ($tweetsPerDay[$date] ?? 0) + 1;
+        }
+
+        return max($tweetsPerDay);
     }
 }

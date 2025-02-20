@@ -166,4 +166,65 @@ class TweetServiceTest extends TestCase
             ]
         ], $result);
     }
+
+    public function test_it_should_return_longest_tweet_by_id()
+    {
+        // Arrange
+        $dummy_tweets_data = storage_path('app/dummy_data.json');
+        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+
+        $tweetService = new TweetService();
+
+        // Act
+        $longest_tweet = $tweetService->getLongestTweetById($tweets);
+
+        // Assert
+        $this->assertEquals('0c2dc961-a0ae-470e-81a6-8320504dae14', $longest_tweet['id']);
+
+    }
+
+    public function test_it_should_return_most_days_between_tweets()
+    {
+        // Arrange
+        $dummy_tweets_data = storage_path('app/dummy_data.json');
+        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+
+        $tweetService = new TweetService();
+
+        // Act
+        $most_days_between_tweets = $tweetService->getMostDaysBetweenTweets($tweets);
+
+        // Assert
+        $this->assertEquals(120, $most_days_between_tweets);
+    }
+
+    public function test_it_should_return_most_popular_hashtag()
+    {
+        // Arrange
+        $dummy_tweets_data = storage_path('app/dummy_data.json');
+        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+
+        $tweetService = new TweetService();
+
+        // Act
+        $most_popular_hashtag = $tweetService->getMostPopularHashtag($tweets);
+
+        // Assert
+        $this->assertEquals('#WorldCup2018', $most_popular_hashtag);
+    }
+
+    public function test_it_should_return_most_number_of_tweets_per_day()
+    {
+        // Arrange
+        $dummy_tweets_data = storage_path('app/dummy_data.json');
+        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+
+        $tweetService = new TweetService();
+
+        // Act
+        $most_number_of_tweets_per_day = $tweetService->getMostNumberOfTweetsPerDay($tweets);
+
+        // Assert
+        $this->assertEquals(10, $most_number_of_tweets_per_day);
+    }
 }
