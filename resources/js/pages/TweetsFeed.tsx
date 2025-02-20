@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,12 +13,7 @@ const TweetApp = () => {
     const [pagination, setPagination] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
-
-    const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && !loading && userName) {
-            fetchTweets();
-        }
-    };
+    const [analytics, setAnalytics] = useState(null);
 
     const fetchTweets = async (page: number = 1) => {
         if (!userName) {
@@ -28,7 +23,6 @@ const TweetApp = () => {
 
         setLoading(true);
         setError('');
-
 
         try {
             const response = await fetch(`/api/tweets?username=${userName}&page=${page}&per_page=${perPage}`);
@@ -40,6 +34,7 @@ const TweetApp = () => {
             setTweets(data.tweets);
             setPagination(data.pagination);
             setCurrentPage(page);
+            setAnalytics(data.analytics);
         } catch (err) {
             setError('Failed to fetch tweets');
         } finally {
@@ -62,6 +57,23 @@ const TweetApp = () => {
             minute: '2-digit'
         });
     };
+
+    const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !loading && userName) {
+            fetchTweets();
+        }
+    };
+
+    // very basic pooling :D
+    useEffect(() => {
+        if (tweets.length > 0) {
+            const interval = setInterval(() => {
+                fetchTweets(currentPage);
+            }, 1000 * 60 * 30); // 30 minutes
+
+            return () => clearInterval(interval);
+        }
+    }, [currentPage]);
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -88,6 +100,26 @@ const TweetApp = () => {
                         <Alert variant="destructive" className="mb-6">
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
+                    )}
+
+                    {analytics && (
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle>Tweets Statistics</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <ul className="space-y-2">
+                                            <li>Total Tweets: {analytics.totalTweets}</li>
+                                            <li>Max Days Between Tweets: {analytics.maxDaysBetweenTweets}</li>
+                                            <li>Most Tweets in a Day: {analytics.mostNumberOfTweetsPerDay}</li>
+                                            <li>Most Popular Hashtag: {analytics.mostPopularHashtag}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
 
                     <div className="space-y-4">
