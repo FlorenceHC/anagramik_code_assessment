@@ -12,44 +12,42 @@ class TweetServiceTest extends TestCase
     public function test_it_should_trigger_an_http_request_with_proper_parameters_and_return_correct_response()
     {
         // Arrange
-        $userName = 'joe_smith';
+        $userName   = 'joe_smith';
         $mockTweets = [
             [
-                'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
                 'createdAt' => '2017-12-01T11:12:42',
-                'text' => 'Test tweet',
-                'user' => [
-                    'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                    'userName' => 'joe_smith'
-                ]
-            ]
+                'text'      => 'Test tweet',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
+            ],
         ];
 
         // Act
         Http::fake([
-            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200)
+            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
         $tweetService = new TweetService();
-        $result = $tweetService->getTweets($userName);
+        $result       = $tweetService->getTweets($userName);
 
         // Assert
-        Http::assertSent(function (Request $request) use ($userName, $tweetService) {
-            return $request->url() === "https://app.codescreen.com/api/assessments/tweets?userName=joe_smith" &&
-                $request->header('Authorization')[0] === 'Bearer 8c5996d5-fb89-46c9-8821-7063cfbc18b1' &&
-                $request['userName'] === $userName;
+        Http::assertSent(function (Request $request) use ($userName) {
+            return $request->url() === 'https://app.codescreen.com/api/assessments/tweets?userName=joe_smith' && $request->header('Authorization')[0] === 'Bearer 8c5996d5-fb89-46c9-8821-7063cfbc18b1' && $request['userName'] === $userName;
         });
 
         $this->assertEquals([
-            'tweets' => $mockTweets,
+            'tweets'     => $mockTweets,
             'pagination' => [
                 'current_page' => 1,
-                'per_page' => 10,
-                'total_items' => 1,
-                'total_pages' => 1,
-                'has_more' => false
+                'per_page'     => 10,
+                'total_items'  => 1,
+                'total_pages'  => 1,
+                'has_more'     => false,
             ],
-            'all_tweets' => $mockTweets
+            'all_tweets' => $mockTweets,
         ], $result);
     }
 
@@ -60,19 +58,19 @@ class TweetServiceTest extends TestCase
 
         $mockTweets = [
             [
-                'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
                 'createdAt' => '2017-12-01T11:12:42',
-                'text' => 'Test tweet',
-                'user' => [
-                    'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                    'userName' => 'joe_smith'
-                ]
-            ]
+                'text'      => 'Test tweet',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
+            ],
         ];
 
         // Act
         Http::fake([
-            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200)
+            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
         $tweetService = new TweetService();
@@ -99,6 +97,7 @@ class TweetServiceTest extends TestCase
         } catch (\Throwable $throwable) {
             // Assert
             $this->assertEquals('Failed to fetch tweets: 500', $throwable->getMessage());
+
             return;
         }
 
@@ -108,64 +107,62 @@ class TweetServiceTest extends TestCase
     public function test_it_should_return_paginated_data_if_there_are_too_many_tweets()
     {
         // Arrange
-        $userName = 'joe_smith';
+        $userName   = 'joe_smith';
         $mockTweets = [
             [
-                'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
                 'createdAt' => '2017-12-01T11:12:42',
-                'text' => 'Test tweet',
-                'user' => [
-                    'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                    'userName' => 'joe_smith'
-                ]
+                'text'      => 'Test tweet',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
             ],
             [
-                'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
                 'createdAt' => '2017-12-01T11:12:42',
-                'text' => 'Test tweet 2',
-                'user' => [
-                    'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                    'userName' => 'joe_smith2'
-                ]
+                'text'      => 'Test tweet 2',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith2',
+                ],
             ],
             [
-                'id' => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
                 'createdAt' => '2017-12-01T11:12:42',
-                'text' => 'Test tweet 3',
-                'user' => [
-                    'id' => '75343078-b5dd-306f-a3f9-8203a3915144',
-                    'userName' => 'joe_smith'
-                ]
-            ]
+                'text'      => 'Test tweet 3',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
+            ],
         ];
 
         // Act
         Http::fake([
-            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200)
+            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
         $tweetService = new TweetService();
-        $result = $tweetService->getTweets($userName, 2, 1);
+        $result       = $tweetService->getTweets($userName, 2, 1);
 
         // Assert
-        Http::assertSent(function (Request $request) use ($userName, $tweetService) {
-            return $request->url() === "https://app.codescreen.com/api/assessments/tweets?userName=joe_smith" &&
-                $request->header('Authorization')[0] === 'Bearer 8c5996d5-fb89-46c9-8821-7063cfbc18b1' &&
-                $request['userName'] === $userName;
+        Http::assertSent(function (Request $request) use ($userName) {
+            return $request->url() === 'https://app.codescreen.com/api/assessments/tweets?userName=joe_smith' && $request->header('Authorization')[0] === 'Bearer 8c5996d5-fb89-46c9-8821-7063cfbc18b1' && $request['userName'] === $userName;
         });
 
         $this->assertEquals([
             'tweets' => [
-                $mockTweets[1] // only one tweet
+                $mockTweets[1], // only one tweet
             ],
             'pagination' => [
                 'current_page' => 2, // we are on the second page
-                'per_page' => 1, // we want only 1 tweet
-                'total_items' => 3, // we have 3 tweets
-                'total_pages' => 3, // we have 3 tweets
-                'has_more' => true
+                'per_page'     => 1, // we want only 1 tweet
+                'total_items'  => 3, // we have 3 tweets
+                'total_pages'  => 3, // we have 3 tweets
+                'has_more'     => true,
             ],
-            'all_tweets' => $mockTweets
+            'all_tweets' => $mockTweets,
         ], $result);
     }
 
@@ -173,7 +170,7 @@ class TweetServiceTest extends TestCase
     {
         // Arrange
         $dummy_tweets_data = storage_path('app/dummy_data.json');
-        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+        $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
         $tweetService = new TweetService();
 
@@ -189,7 +186,7 @@ class TweetServiceTest extends TestCase
     {
         // Arrange
         $dummy_tweets_data = storage_path('app/dummy_data.json');
-        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+        $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
         $tweetService = new TweetService();
 
@@ -204,7 +201,7 @@ class TweetServiceTest extends TestCase
     {
         // Arrange
         $dummy_tweets_data = storage_path('app/dummy_data.json');
-        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+        $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
         $tweetService = new TweetService();
 
@@ -219,7 +216,7 @@ class TweetServiceTest extends TestCase
     {
         // Arrange
         $dummy_tweets_data = storage_path('app/dummy_data.json');
-        $tweets = json_decode(file_get_contents($dummy_tweets_data), true);
+        $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
         $tweetService = new TweetService();
 

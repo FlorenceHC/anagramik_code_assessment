@@ -10,18 +10,20 @@ class TweetService
 {
     // TODO: move consts to some config file for data easier manipulation
     private const API_URL = 'https://app.codescreen.com/api/assessments/tweets';
+
     private const API_TOKEN = '8c5996d5-fb89-46c9-8821-7063cfbc18b1';
+
     private const CACHE_TTL = 1800; // 30 minutes in seconds
 
     public function getTweetsFromApi(string $userName): array
     {
         $response = Http::withToken(self::API_TOKEN)
             ->get(self::API_URL, [
-                'userName' => $userName
+                'userName' => $userName,
             ]);
 
         if ($response->failed()) {
-            throw new \Exception('Failed to fetch tweets: ' . $response->status());
+            throw new \Exception('Failed to fetch tweets: '.$response->status());
         }
 
         return $response->json();
@@ -35,20 +37,20 @@ class TweetService
             return $this->getTweetsFromApi($userName);
         });
 
-        $offset = ($page - 1) * $perPage;
+        $offset      = ($page - 1) * $perPage;
         $totalTweets = count($tweets);
-        $totalPages = ceil($totalTweets / $perPage);
+        $totalPages  = ceil($totalTweets / $perPage);
 
         return [
-            'tweets' => array_slice($tweets, $offset, $perPage),
+            'tweets'     => array_slice($tweets, $offset, $perPage),
             'pagination' => [
                 'current_page' => $page,
-                'per_page' => $perPage,
-                'total_items' => $totalTweets,
-                'total_pages' => $totalPages,
-                'has_more' => $page < $totalPages
+                'per_page'     => $perPage,
+                'total_items'  => $totalTweets,
+                'total_pages'  => $totalPages,
+                'has_more'     => $page < $totalPages,
             ],
-            'all_tweets' => $tweets
+            'all_tweets' => $tweets,
         ];
     }
 
@@ -60,26 +62,27 @@ class TweetService
 
         // TODO: I am constantly iterating over the same array - find a better solution
         $numberOfTweetsPerDay = $this->getNumberOfTweetsPerDay($tweets);
+
         return [
-            'totalTweets' => count($tweets),
-            'longestTweetId' => $this->getLongestTweetById($tweets)['id'],
-            'maxDaysBetweenTweets' => $this->getMostDaysBetweenTweets($tweets),
-            'mostPopularHashtag' => $this->getMostPopularHashtag($tweets),
+            'totalTweets'              => count($tweets),
+            'longestTweetId'           => $this->getLongestTweetById($tweets)['id'],
+            'maxDaysBetweenTweets'     => $this->getMostDaysBetweenTweets($tweets),
+            'mostPopularHashtag'       => $this->getMostPopularHashtag($tweets),
             'mostNumberOfTweetsPerDay' => max($numberOfTweetsPerDay),
-            'numberOfTweetsPerDay' => $numberOfTweetsPerDay
+            'numberOfTweetsPerDay'     => $numberOfTweetsPerDay,
         ];
     }
 
     public function getLongestTweetById(array $tweets): array
     {
-        $longestTweet = null;
+        $longestTweet       = null;
         $longestTweetLength = 0;
 
         foreach ($tweets as $tweet) {
             $tweetLength = strlen($tweet['text']);
             if ($tweetLength > $longestTweetLength) {
                 $longestTweetLength = $tweetLength;
-                $longestTweet = $tweet;
+                $longestTweet       = $tweet;
             }
         }
 
@@ -93,10 +96,10 @@ class TweetService
         $maxDays = 0;
 
         for ($i = 0; $i < count($sortedTweets) - 1; $i++) {
-            $current = Carbon::parse($sortedTweets[$i]['createdAt']);
-            $future = Carbon::parse($sortedTweets[$i + 1]['createdAt']);
+            $current    = Carbon::parse($sortedTweets[$i]['createdAt']);
+            $future     = Carbon::parse($sortedTweets[$i + 1]['createdAt']);
             $diffInDays = $current->diffInDays($future);
-            $maxDays = max($maxDays, $diffInDays);
+            $maxDays    = max($maxDays, $diffInDays);
         }
 
         return $maxDays;
@@ -111,7 +114,7 @@ class TweetService
 
             // loop over all of them and update global count
             foreach ($matches[0] as $hashtag) {
-                if (!isset($hashtags[$hashtag])) {
+                if (! isset($hashtags[$hashtag])) {
                     $hashtags[$hashtag] = 0;
                 }
                 $hashtags[$hashtag] += 1;
@@ -126,7 +129,7 @@ class TweetService
     {
         $tweetsPerDay = [];
         foreach ($tweets as $tweet) {
-            $date = Carbon::parse($tweet['createdAt'])->toDateString();
+            $date                = Carbon::parse($tweet['createdAt'])->toDateString();
             $tweetsPerDay[$date] = ($tweetsPerDay[$date] ?? 0) + 1;
         }
 

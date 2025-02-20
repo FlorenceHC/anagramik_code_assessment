@@ -11,8 +11,8 @@ class GetAllTweetsTest extends TestCase
     {
         // Arrange
         $username = 'joe_smith';
-        $page = 1;
-        $perPage = 10;
+        $page     = 1;
+        $perPage  = 10;
 
         $tweetServiceMock = $this->mock(TweetService::class);
         $tweetServiceMock->shouldReceive('getTweets')
@@ -20,21 +20,21 @@ class GetAllTweetsTest extends TestCase
             ->once()
             ->andReturn([
                 'tweets' => [
-                    'fake-tweets-data'
+                    'fake-tweets-data',
                 ],
                 'pagination' => [
-                    'fake-pagination-data'
+                    'fake-pagination-data',
                 ],
                 'all_tweets' => [
-                    'fake-all_tweets-data'
-                ]
+                    'fake-all_tweets-data',
+                ],
             ]);
 
         $tweetServiceMock->shouldReceive('getAnalytics')
             ->with(['fake-all_tweets-data'])
             ->once()
             ->andReturn([
-                'fake-analytics-data'
+                'fake-analytics-data',
             ]);
 
         // Act
@@ -44,15 +44,15 @@ class GetAllTweetsTest extends TestCase
         $response->assertOk()
             ->assertExactJson([
                 'tweets' => [
-                    'fake-tweets-data'
+                    'fake-tweets-data',
                 ],
                 'pagination' => [
-                    'fake-pagination-data'
+                    'fake-pagination-data',
                 ],
                 'all_tweets' => [
-                    'fake-all_tweets-data'
+                    'fake-all_tweets-data',
                 ],
-                'fake-analytics-data'
+                'fake-analytics-data',
             ]);
     }
 

@@ -10,13 +10,13 @@ class IndexController extends Controller
 {
     public function __invoke(GetAllTweetsRequest $request, TweetService $tweetService)
     {
-        $tweets = $tweetService->getTweets($request->username, $request->page, $request->per_page);
+        $tweets    = $tweetService->getTweets($request->username, $request->page, $request->per_page);
         $analytics = $tweetService->getAnalytics($tweets['all_tweets']);
 
         return response()->json([
-            'tweets' => $tweets['tweets'],
+            'tweets'     => $tweets['tweets'],
             'pagination' => $tweets['pagination'],
-            'analytics' => $analytics,
+            'analytics'  => $analytics,
         ]);
     }
 }
