@@ -26,6 +26,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy project files
+COPY . .
+
+# Install dependencies
+RUN composer install --no-scripts --no-autoloader
+RUN composer dump-autoload --optimize
+
+# Install Node.js dependencies and build assets
+RUN npm install
+RUN npm run build
+
 # Create Laravel storage directory structure
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     && mkdir -p storage/logs \

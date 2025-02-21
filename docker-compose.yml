@@ -1,20 +1,34 @@
 services:
-  app:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    volumes:
-      - .:/var/www/html
-      - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
-    ports:
-      - "8000:8000"
-    networks:
-      - florence-test-challenge
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    app:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        volumes:
+            - ./app:/var/www/html/app
+            - ./resources:/var/www/html/resources
+            - ./routes:/var/www/html/routes
+            - ./tests:/var/www/html/tests
+            - ./storage:/var/www/html/storage
+            - ./database:/var/www/html/database
+            - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
+        ports:
+            - "8000:8000"
+        networks:
+            - florence-test-challenge
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+        command: >
+            bash -c "
+            cp .env.example .env &&
+            php artisan key:generate --force &&
+            touch database/database.sqlite &&
+            php artisan migrate --force &&
+            php artisan serve --host=0.0.0.0 --port=8000"
 
 networks:
-  florence-test-challenge:
-    driver: bridge
+    florence-test-challenge:
+        driver: bridge
 
 volumes:
-  dbdata:
+    dbdata:

@@ -135,9 +135,6 @@ Include a simple Docker setup or deployment instructions that allow the project 
 # Just run this in your terminal and then access the app on this url http://localhost:8000/
 ```
 docker-compose up -d --build
-docker-compose exec app composer install
-docker-compose exec app npm install
-docker-compose exec app npm run build
 ```
 ---
 
