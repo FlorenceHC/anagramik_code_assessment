@@ -226,4 +226,31 @@ class TweetServiceTest extends TestCase
         // Assert
         $this->assertEquals(10, max($most_number_of_tweets_per_day));
     }
+
+    public function test_get_analytics_method_should_call_proper_internal_methods()
+    {
+        // Arrange
+        $dummy_tweets_data = storage_path('app/dummy_data.json');
+        $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
+
+        $tweetServiceMock = $this->partialMock(TweetService::class);
+
+        $tweetServiceMock->shouldReceive('getLongestTweetById')->once()->with($tweets)->andReturn(['id' => 'fake-id']);
+        $tweetServiceMock->shouldReceive('getMostDaysBetweenTweets')->once()->with($tweets)->andReturn(0);
+        $tweetServiceMock->shouldReceive('getMostPopularHashtag')->once()->with($tweets)->andReturn('');
+        $tweetServiceMock->shouldReceive('getNumberOfTweetsPerDay')->once()->with($tweets)->andReturn(['fake-data']);
+
+        // Act
+        $result = $tweetServiceMock->getAnalytics($tweets);
+
+        // Assert
+        $this->assertEquals([
+            'totalTweets'              => 39,
+            'longestTweetId'           => 'fake-id',
+            'maxDaysBetweenTweets'     => 0,
+            'mostPopularHashtag'       => '',
+            'mostNumberOfTweetsPerDay' => 'fake-data',
+            'numberOfTweetsPerDay'     => ['fake-data'],
+        ], $result);
+    }
 }
