@@ -34,7 +34,15 @@ class TweetService
         $cacheKey = "tweets.{$userName}";
 
         $tweets = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userName) {
-            return $this->getTweetsFromApi($userName);
+
+            $data = $this->getTweetsFromApi($userName);
+
+          // TODO: check with them if tweets need to be sorted chronologically
+            usort($data, function ($a, $b) {
+                return Carbon::parse($a['createdAt']) <=> Carbon::parse($b['createdAt']);
+            });
+
+            return $data;
         });
 
         $offset      = ($page - 1) * $perPage;
@@ -61,6 +69,8 @@ class TweetService
         }
 
         // TODO: I am constantly iterating over the same array - find a better solution
+        // I can always iterate only once over the entire array
+        // but then I will have a larage and ugly function :)
         $numberOfTweetsPerDay = $this->getNumberOfTweetsPerDay($tweets);
 
         return [
@@ -114,14 +124,16 @@ class TweetService
 
             // loop over all of them and update global count
             foreach ($matches[0] as $hashtag) {
-                if (! isset($hashtags[$hashtag])) {
-                    $hashtags[$hashtag] = 0;
-                }
-                $hashtags[$hashtag] += 1;
+                $hashtags[$hashtag] = ($hashtags[$hashtag] ?? 0) + 1;
             }
         }
 
         // this will find the biggest value in the array and return the key
+        // example:
+        // $hashtags = [
+        //    '#WorldCup2018' => 12,
+        //    '#Testing' => 2
+        //];
         return array_search(max($hashtags), $hashtags);
     }
 

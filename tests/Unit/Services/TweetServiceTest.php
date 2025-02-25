@@ -253,4 +253,68 @@ class TweetServiceTest extends TestCase
             'numberOfTweetsPerDay'     => ['fake-data'],
         ], $result);
     }
+
+    public function test_it_should_return_tweets_in_chronological_order()
+    {
+        // Arrange
+        $userName   = 'joe_smith';
+        $mockTweets = [
+            [
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'createdAt' => '2017-02-02T11:12:42',
+                'text'      => 'Test tweet 2',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
+            ],
+            [
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'createdAt' => '2017-01-01T11:12:42',
+                'text'      => 'Test tweet 1',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
+            ],
+            [
+                'id'        => '52f83d7c-ad2c-4ca0-b742-b03bc27f0c96',
+                'createdAt' => '2017-03-03T11:12:42',
+                'text'      => 'Test tweet 3',
+                'user'      => [
+                    'id'       => '75343078-b5dd-306f-a3f9-8203a3915144',
+                    'userName' => 'joe_smith',
+                ],
+            ],
+        ];
+
+        // Act
+        Http::fake([
+            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
+        ]);
+
+        $tweetService = new TweetService();
+        $result       = $tweetService->getTweets($userName, 1, 3);
+
+        // Assert
+        $this->assertEquals([
+            'tweets' => [
+                $mockTweets[1], // oldest tweet
+                $mockTweets[0], // middle tweet
+                $mockTweets[2], // newest tweet
+            ],
+            'pagination' => [
+                'current_page' => 1,
+                'per_page'     => 3,
+                'total_items'  => 3,
+                'total_pages'  => 1,
+                'has_more'     => false,
+            ],
+            'all_tweets' => [
+                $mockTweets[1], // oldest tweet
+                $mockTweets[0], // middle tweet
+                $mockTweets[2], // newest tweet
+            ],
+        ], $result);
+    }
 }
