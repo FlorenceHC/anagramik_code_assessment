@@ -73,8 +73,7 @@ const TweetApp = () => {
     };
 
     const handlePageChange = (newPage: number) :void => {
-        // @ts-ignore
-        if (newPage >= 1 && newPage <= pagination?.total_pages) {
+        if (newPage >= 1 && pagination && newPage <= pagination?.total_pages) {
             fetchTweets(newPage);
         }
     };
@@ -87,12 +86,6 @@ const TweetApp = () => {
             hour: '2-digit',
             minute: '2-digit'
         });
-    };
-
-    const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && !loading && userName) {
-            fetchTweets();
-        }
     };
 
     // very basic pooling :D
@@ -113,19 +106,18 @@ const TweetApp = () => {
                     <CardTitle>Twitter Feed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex gap-4 mb-6">
+                    <form className="flex gap-4 mb-6">
                         <Input
                             type="text"
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
-                            onKeyDown={handleEnter}
                             placeholder="Enter username (e.g. joe_smith)"
                             className="flex-grow"
                         />
                         <Button onClick={() => fetchTweets(1)} disabled={loading}>
                             {loading ? 'Loading...' : 'Fetch Tweets'}
                         </Button>
-                    </div>
+                    </form>
 
                     {error && (
                         <Alert variant="destructive" className="mb-6">
