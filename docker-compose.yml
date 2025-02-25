@@ -9,7 +9,6 @@ services:
             - ./routes:/var/www/html/routes
             - ./tests:/var/www/html/tests
             - ./storage:/var/www/html/storage
-            - ./database:/var/www/html/database
             - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
         ports:
             - "8000:8000"
@@ -22,13 +21,8 @@ services:
             bash -c "
             cp .env.example .env &&
             php artisan key:generate --force &&
-            touch database/database.sqlite &&
-            php artisan migrate --force &&
             php artisan serve --host=0.0.0.0 --port=8000"
 
 networks:
     florence-test-challenge:
         driver: bridge
-
-volumes:
-    dbdata:
