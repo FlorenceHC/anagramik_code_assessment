@@ -122,7 +122,7 @@ class TweetTransformerTest extends TestCase
         $this->assertFalse($transformer->isValid($tweet));
     }
 
-    public function test_transformer_transforms_data_correctly()
+    public function test_that_date_is_transformed_correctly()
     {
         // Arrange
         $data = [[
@@ -142,5 +142,17 @@ class TweetTransformerTest extends TestCase
             'createdAt' => '2021-01-01 00:00:00',
             'user'      => ['userName' => 'user'],
         ]], $transformer->transform($data));
+    }
+
+    public function test_empty_array_should_not_break_our_code()
+    {
+        // Arrange
+        $data = [];
+
+        // Act
+        $transformer = new TweetTransformer();
+
+        // Assert
+        $this->assertEquals([], $transformer->transform($data));
     }
 }

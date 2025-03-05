@@ -2,7 +2,6 @@
 
 namespace App\Transformers;
 
-
 class TweetTransformer
 {
     public function isValid(array $tweet): bool

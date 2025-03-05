@@ -329,4 +329,34 @@ class TweetServiceTest extends TestCase
             ],
         ], $result);
     }
+
+    public function test_it_should_return_an_empty_array_if_there_is_no_response()
+    {
+        // Arrange
+        $userName   = 'joe_smith';
+        $mockTweets = [];
+
+        // Act
+        Http::fake([
+            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
+        ]);
+
+        $tweetService = new TweetService(new TweetTransformer());
+        $result       = $tweetService->getTweets($userName, 1, 3);
+
+        // Assert
+        $this->assertEquals([
+            'tweets' => [
+            ],
+            'pagination' => [
+                'current_page' => 1,
+                'per_page'     => 3,
+                'total_items'  => 0,
+                'total_pages'  => 0,
+                'has_more'     => false,
+            ],
+            'all_tweets' => [
+            ],
+        ], $result);
+    }
 }
