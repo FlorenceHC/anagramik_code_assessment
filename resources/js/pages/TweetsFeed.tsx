@@ -58,15 +58,20 @@ const TweetApp = () => {
             const response = await fetch(`/api/tweets?username=${userName}&page=${page}&per_page=${perPage}`);
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to fetch tweets');
+
+                handleError(response, errorData);
             }
             const data: TweetResponse = await response.json();
             setTweets(data.tweets);
             setPagination(data.pagination);
             setCurrentPage(page);
             setAnalytics(data.analytics);
-        } catch (err) {
-            setError('Failed to fetch tweets');
+        } catch (err: any) {
+            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+            setTweets([]);
+            setPagination(null);
+            setAnalytics(null);
+            setCurrentPage(1);
         } finally {
             setLoading(false);
         }
@@ -99,6 +104,25 @@ const TweetApp = () => {
         }
     }, [currentPage]);
 
+    const handleError = (response: Response, errorData: any) => {
+        if (response.status === 400) {
+            if (errorData.message?.toLowerCase().includes('username')) {
+                setError('Please enter a valid username.');
+            } else {
+                throw new Error(errorData.message || 'Failed to fetch tweets');
+            }
+            throw new Error('Please enter a valid username');
+        } else if (response.status === 404) {
+            throw new Error('We are unable to find any data, please check the username and try again');
+        } else if (response.status === 429) {
+            throw new Error('Too many requests, please try again in a few minutes');
+        } else if (response.status >= 500) {
+            throw new Error('An error occurred, please try again in a few minutes and contact support if the issue persists');
+        } else {
+            throw new Error(errorData.message || 'Failed to fetch tweets');
+        }
+    }
+
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
             <Card>
@@ -106,11 +130,12 @@ const TweetApp = () => {
                     <CardTitle>Twitter Feed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form className="flex gap-4 mb-6">
+                    <form className="flex gap-4 mb-6" onSubmit={(e) => e.preventDefault()}>
                         <Input
                             type="text"
-                            value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
+                            defaultValue={userName}
+                            onChange={(e) => error && setError('')}
+                            onBlur={(e) => setUserName(e.target.value)}
                             placeholder="Enter username (e.g. joe_smith)"
                             className="flex-grow"
                         />
