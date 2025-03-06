@@ -2,12 +2,17 @@
 
 namespace App\Services;
 
+use App\Transformers\TweetTransformer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class TweetService
 {
+    public function __construct(
+        private readonly TweetTransformer $transformer
+    ) {}
+
     // TODO: move consts to some config file for data easier manipulation
     private const API_URL = 'https://app.codescreen.com/api/assessments/tweets';
 
@@ -35,9 +40,11 @@ class TweetService
 
         $tweets = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userName) {
 
-            $data = $this->getTweetsFromApi($userName);
+            $data = $this->transformer->transform(
+                $this->getTweetsFromApi($userName)
+            );
 
-          // TODO: check with them if tweets need to be sorted chronologically
+            // TODO: check with them if tweets need to be sorted chronologically
             usort($data, function ($a, $b) {
                 return Carbon::parse($a['createdAt']) <=> Carbon::parse($b['createdAt']);
             });
@@ -133,7 +140,7 @@ class TweetService
         // $hashtags = [
         //    '#WorldCup2018' => 12,
         //    '#Testing' => 2
-        //];
+        // ];
         return array_search(max($hashtags), $hashtags);
     }
 

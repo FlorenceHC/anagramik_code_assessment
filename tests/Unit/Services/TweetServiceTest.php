@@ -3,9 +3,12 @@
 namespace Tests\Unit\Services;
 
 use App\Services\TweetService;
+use App\Transformers\TweetTransformer;
+use Exception;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
+use Throwable;
 
 class TweetServiceTest extends TestCase
 {
@@ -24,13 +27,15 @@ class TweetServiceTest extends TestCase
                 ],
             ],
         ];
+        $tweetTransformerMock = $this->mock(TweetTransformer::class);
+        $tweetTransformerMock->shouldReceive('transform')->once()->with($mockTweets)->andReturn($mockTweets);
 
         // Act
         Http::fake([
             'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService($tweetTransformerMock);
         $result       = $tweetService->getTweets($userName);
 
         // Assert
@@ -67,13 +72,15 @@ class TweetServiceTest extends TestCase
                 ],
             ],
         ];
+        $tweetTransformerMock = $this->mock(TweetTransformer::class);
+        $tweetTransformerMock->shouldReceive('transform')->once()->with($mockTweets)->andReturn($mockTweets);
 
         // Act
         Http::fake([
             'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService($tweetTransformerMock);
         $tweetService->getTweets($userName);
         $tweetService->getTweets($userName);
 
@@ -84,17 +91,18 @@ class TweetServiceTest extends TestCase
     public function test_if_http_request_fails_it_should_throw_an_exception()
     {
         // Arrange
-        $userName = 'joe_smith';
+        $userName             = 'joe_smith';
+        $tweetTransformerMock = $this->mock(TweetTransformer::class);
 
         // Act
         Http::fake([
-            'app.codescreen.com/api/assessments/tweets*' => Http::response(new \Exception('request exception'), 500),
+            'app.codescreen.com/api/assessments/tweets*' => Http::response(new Exception('request exception'), 500),
         ]);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService($tweetTransformerMock);
         try {
             $tweetService->getTweets($userName);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             // Assert
             $this->assertEquals('Failed to fetch tweets: 500', $throwable->getMessage());
 
@@ -137,13 +145,15 @@ class TweetServiceTest extends TestCase
                 ],
             ],
         ];
+        $tweetTransformerMock = $this->mock(TweetTransformer::class);
+        $tweetTransformerMock->shouldReceive('transform')->once()->with($mockTweets)->andReturn($mockTweets);
 
         // Act
         Http::fake([
             'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService($tweetTransformerMock);
         $result       = $tweetService->getTweets($userName, 2, 1);
 
         // Assert
@@ -172,7 +182,7 @@ class TweetServiceTest extends TestCase
         $dummy_tweets_data = storage_path('app/dummy_data.json');
         $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService(new TweetTransformer());
 
         // Act
         $longest_tweet = $tweetService->getLongestTweetById($tweets);
@@ -188,7 +198,7 @@ class TweetServiceTest extends TestCase
         $dummy_tweets_data = storage_path('app/dummy_data.json');
         $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService(new TweetTransformer());
 
         // Act
         $most_days_between_tweets = $tweetService->getMostDaysBetweenTweets($tweets);
@@ -203,7 +213,7 @@ class TweetServiceTest extends TestCase
         $dummy_tweets_data = storage_path('app/dummy_data.json');
         $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService(new TweetTransformer());
 
         // Act
         $most_popular_hashtag = $tweetService->getMostPopularHashtag($tweets);
@@ -218,7 +228,7 @@ class TweetServiceTest extends TestCase
         $dummy_tweets_data = storage_path('app/dummy_data.json');
         $tweets            = json_decode(file_get_contents($dummy_tweets_data), true);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService(new TweetTransformer());
 
         // Act
         $most_number_of_tweets_per_day = $tweetService->getNumberOfTweetsPerDay($tweets);
@@ -287,13 +297,15 @@ class TweetServiceTest extends TestCase
                 ],
             ],
         ];
+        $tweetTransformerMock = $this->mock(TweetTransformer::class);
+        $tweetTransformerMock->shouldReceive('transform')->once()->with($mockTweets)->andReturn($mockTweets);
 
         // Act
         Http::fake([
             'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
         ]);
 
-        $tweetService = new TweetService();
+        $tweetService = new TweetService($tweetTransformerMock);
         $result       = $tweetService->getTweets($userName, 1, 3);
 
         // Assert
@@ -314,6 +326,36 @@ class TweetServiceTest extends TestCase
                 $mockTweets[1], // oldest tweet
                 $mockTweets[0], // middle tweet
                 $mockTweets[2], // newest tweet
+            ],
+        ], $result);
+    }
+
+    public function test_it_should_return_an_empty_array_if_there_is_no_response()
+    {
+        // Arrange
+        $userName   = 'joe_smith';
+        $mockTweets = [];
+
+        // Act
+        Http::fake([
+            'app.codescreen.com/api/assessments/tweets*' => Http::response($mockTweets, 200),
+        ]);
+
+        $tweetService = new TweetService(new TweetTransformer());
+        $result       = $tweetService->getTweets($userName, 1, 3);
+
+        // Assert
+        $this->assertEquals([
+            'tweets' => [
+            ],
+            'pagination' => [
+                'current_page' => 1,
+                'per_page'     => 3,
+                'total_items'  => 0,
+                'total_pages'  => 0,
+                'has_more'     => false,
+            ],
+            'all_tweets' => [
             ],
         ], $result);
     }
