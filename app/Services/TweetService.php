@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Transformers\TweetTransformer;
 use Carbon\Carbon;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -20,18 +21,27 @@ class TweetService
 
     private const CACHE_TTL = 1800; // 30 minutes in seconds
 
-    public function getTweetsFromApi(string $userName): array
+    public function getTweetsFromApi(string $userName)
     {
-        $response = Http::withToken(self::API_TOKEN)
-            ->get(self::API_URL, [
-                'userName' => $userName,
-            ]);
+        try {
+            $response = Http::withToken(self::API_TOKEN)
+                ->get(self::API_URL, [
+                    'userNamde' => $userName,
+                ]);
 
-        if ($response->failed()) {
-            throw new \Exception('Failed to fetch tweets: '.$response->status());
+            $response->throw();
+
+            return $response->json();
+        } catch (RequestException $e) {
+            //            TODO: Add logging for easier debugging
+            //            Log::error('Failed to fetch tweets', [
+            //                'userName' => $userName,
+            //                'status'   => $e->response->status(),
+            //                'error'    => $e->getMessage(),
+            //            ]);
+
+            throw $e;
         }
-
-        return $response->json();
     }
 
     public function getTweets(string $userName, ?int $page = 1, ?int $perPage = 10): array
@@ -44,7 +54,6 @@ class TweetService
                 $this->getTweetsFromApi($userName)
             );
 
-            // TODO: check with them if tweets need to be sorted chronologically
             usort($data, function ($a, $b) {
                 return Carbon::parse($a['createdAt']) <=> Carbon::parse($b['createdAt']);
             });

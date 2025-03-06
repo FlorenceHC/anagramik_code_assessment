@@ -4,11 +4,11 @@ namespace Tests\Unit\Services;
 
 use App\Services\TweetService;
 use App\Transformers\TweetTransformer;
-use Exception;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
-use Throwable;
 
 class TweetServiceTest extends TestCase
 {
@@ -86,30 +86,6 @@ class TweetServiceTest extends TestCase
 
         // Assert
         Http::assertSentCount(1);
-    }
-
-    public function test_if_http_request_fails_it_should_throw_an_exception()
-    {
-        // Arrange
-        $userName             = 'joe_smith';
-        $tweetTransformerMock = $this->mock(TweetTransformer::class);
-
-        // Act
-        Http::fake([
-            'app.codescreen.com/api/assessments/tweets*' => Http::response(new Exception('request exception'), 500),
-        ]);
-
-        $tweetService = new TweetService($tweetTransformerMock);
-        try {
-            $tweetService->getTweets($userName);
-        } catch (Throwable $throwable) {
-            // Assert
-            $this->assertEquals('Failed to fetch tweets: 500', $throwable->getMessage());
-
-            return;
-        }
-
-        $this->fail('Exception has not been thrown');
     }
 
     public function test_it_should_return_paginated_data_if_there_are_too_many_tweets()
@@ -358,5 +334,74 @@ class TweetServiceTest extends TestCase
             'all_tweets' => [
             ],
         ], $result);
+    }
+
+    #[DataProvider('http_error_provider')]
+    public function test_get_tweets_from_api_handles_http_errors(int $status, string $error, string $exception): void
+    {
+        // Arrange
+        $userName = 'joe_smith';
+        Http::fake([
+            'app.codescreen.com/api/assessments/tweets*' => Http::response([
+                'message' => $error,
+            ], $status),
+        ]);
+
+        $tweetService = new TweetService(new TweetTransformer());
+
+        try {
+            // Act
+            $tweetService->getTweetsFromApi($userName);
+        } catch (RequestException $e) {
+            // Assert
+            $message = json_decode($e->response->getBody()->getContents())->message;
+            $this->assertEquals($error, $message);
+            $this->assertInstanceOf($exception, $e);
+
+            return;
+        }
+
+        $this->fail('Exception has not been thrown');
+    }
+
+    public static function http_error_provider(): array
+    {
+        return [
+            'bad request' => [
+                'status'    => 400,
+                'error'     => 'Bad Request',
+                'exception' => RequestException::class,
+            ],
+            'unauthorized' => [
+                'status'    => 401,
+                'error'     => 'Unauthorized',
+                'exception' => RequestException::class,
+            ],
+            'forbidden' => [
+                'status'    => 403,
+                'error'     => 'Forbidden',
+                'exception' => RequestException::class,
+            ],
+            'not found' => [
+                'status'    => 404,
+                'error'     => 'Not Found',
+                'exception' => RequestException::class,
+            ],
+            'method not allowed' => [
+                'status'    => 405,
+                'error'     => 'Method Not Allowed',
+                'exception' => RequestException::class,
+            ],
+            'server error' => [
+                'status'    => 500,
+                'error'     => 'Internal Server Error',
+                'exception' => RequestException::class,
+            ],
+            'service unavailable' => [
+                'status'    => 503,
+                'error'     => 'Service Unavailable',
+                'exception' => RequestException::class,
+            ],
+        ];
     }
 }
